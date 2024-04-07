@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import "./Form.css";
 
-function Form({ onFormSubmit }) {
+function Form() {
   const navigate = useNavigate();
   const { index } = useParams();
   const {
@@ -15,6 +15,7 @@ function Form({ onFormSubmit }) {
   } = useForm();
   const password = React.useRef({});
   password.current = watch("password", "");
+
   useEffect(() => {
     if (index !== undefined) {
       const formDataList = JSON.parse(localStorage.getItem("formData")) || [];
@@ -31,28 +32,20 @@ function Form({ onFormSubmit }) {
   }, [index, setValue, navigate]);
 
   const onSubmit = (data) => {
-    // Handling form submission here
-    console.log("Form data:", data);
-
-    // Retrieving existing form data from local storage or initialize an empty array
-    let existingFormData = JSON.parse(localStorage.getItem("formData")) || [];
-
     if (index !== undefined) {
-      // Updating existing record if in edit mode
-      existingFormData[index] = data;
+      navigate("/summary", {
+        state: { formData: { ...data, index }, isAuthenticated: true },
+      });
+      alert("Here is summary of your data");
     } else {
-      // Adding new record if not in edit mode
-      existingFormData.push(data);
+      // Remove saving of new form data here
+      navigate("/summary", {
+        state: { formData: data, isAuthenticated: true },
+      });
+      alert("Here is summary of your data");
     }
-    // Store the updated form data array in local storage
-    localStorage.setItem("formData", JSON.stringify(existingFormData));
-
-    if (typeof onFormSubmit === "function") {
-      onFormSubmit();
-    }
-    navigate("/summary", { state: { formData: data, isAuthenticated: true } });
-    alert("Here is summary of your data");
   };
+
   return (
     <div className="App">
       <h1>
@@ -122,42 +115,46 @@ function Form({ onFormSubmit }) {
             <span className="error">{errors.phoneNumber.message}</span>
           )}
         </div>
-        <div>
-          <label>Password*</label>
-          <input
-            type="password"
-            {...register("password", {
-              required: "Password is required",
-              minLength: {
-                value: 6,
-                message: "Password must be at least 6 characters long",
-              },
+        {!index && (
+          <div>
+            <label>Password*</label>
+            <input
+              type="password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters long",
+                },
 
-              pattern: {
-                value:
-                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
-                message:
-                  "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character",
-              },
-            })}
-          />
-          {errors.password && (
-            <span className="error">{errors.password.message}</span>
-          )}
-        </div>
-        <div>
-          <label>Re-enter Password*</label>
-          <input
-            type="password"
-            {...register("passwordConfirm", {
-              validate: (value) =>
-                value === password.current || "The passwords do not match",
-            })}
-          />
-          {errors.passwordConfirm && (
-            <span className="error">{errors.passwordConfirm.message}</span>
-          )}
-        </div>
+                pattern: {
+                  value:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+                  message:
+                    "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character",
+                },
+              })}
+            />
+            {errors.password && (
+              <span className="error">{errors.password.message}</span>
+            )}
+          </div>
+        )}
+        {!index && (
+          <div>
+            <label>Re-enter Password*</label>
+            <input
+              type="password"
+              {...register("passwordConfirm", {
+                validate: (value) =>
+                  value === password.current || "The passwords do not match",
+              })}
+            />
+            {errors.passwordConfirm && (
+              <span className="error">{errors.passwordConfirm.message}</span>
+            )}
+          </div>
+        )}
         <div>
           <label>Alternate Phone Number</label>
           <input

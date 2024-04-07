@@ -5,6 +5,7 @@ function Summary() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = location.state?.isAuthenticated;
+  const formData = location.state?.formData;
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/", { replace: true }); // Redirect to home page
@@ -13,10 +14,27 @@ function Summary() {
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = () => {
-    alert("Your form is already submitted");
-    navigate("/");
+    console.log("Form data:", formData);
+
+    if (formData) {
+      let existingFormData = JSON.parse(localStorage.getItem("formData")) || [];
+
+      if (formData.index !== undefined && existingFormData[formData.index]) {
+        // Update existing record
+        existingFormData[formData.index] = formData;
+      } else {
+        // Add new record
+        existingFormData.push(formData);
+      }
+
+      localStorage.setItem("formData", JSON.stringify(existingFormData));
+
+      alert("Your form is submitted");
+      navigate("/", { state: { updatedData: formData } });
+    } else {
+      console.error("Form data is missing in location state.");
+    }
   };
-  const { formData } = location.state || {};
 
   const goBackToFormPage = () => {
     navigate("/form");
@@ -50,7 +68,6 @@ function Summary() {
               <strong>Address:</strong> {formData.address}
               <br />
             </li>
-            {/* ))} */}
           </ul>
           <button onClick={handleSubmit}>Submit</button>
           <button onClick={goBackToFormPage}>Go back to form page</button>

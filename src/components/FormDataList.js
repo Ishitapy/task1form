@@ -1,15 +1,12 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+
 import "./FormDataList.css";
 
-function FormDataList() {
-  // Retrieving form data from local storage
-  const formDataList = JSON.parse(localStorage.getItem("formData")) || [];
-  const navigate = useNavigate();
-
+function FormDataList({ formDataList, onEdit }) {
   const handleEdit = (index) => {
-    // Redirecting to form page with edit flag
-    navigate(`/form/edit/${index}`);
+    if (typeof onEdit === "function") {
+      onEdit(index);
+    }
   };
 
   const handleDelete = (index) => {
@@ -49,12 +46,12 @@ function FormDataList() {
         <tbody>
           {formDataList.map((formData, index) => (
             <tr key={index}>
-              <td>{formData.firstName}</td>
-              <td>{formData.lastName}</td>
-              <td>{formData.email}</td>
-              <td>{formData.phoneNumber}</td>
-              <td>{formData.alternatePhoneNumber}</td>
-              <td>{formData.address}</td>
+              <td>{formData ? formData.firstName : ""}</td>
+              <td>{formData ? formData.lastName : ""}</td>
+              <td>{formData ? formData.email : ""}</td>
+              <td>{formData ? formData.phoneNumber : ""}</td>
+              <td>{formData ? formData.alternatePhoneNumber : ""}</td>
+              <td>{formData ? formData.address : ""}</td>
               <td>
                 <button onClick={() => handleEdit(index)}>Edit</button>
                 <button onClick={() => handleDelete(index)}>Delete</button>
