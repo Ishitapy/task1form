@@ -1,22 +1,22 @@
 import React from "react";
-
+import axios from "./axiosConfig";
 import "./FormDataList.css";
 
-function FormDataList({ formDataList, onEdit }) {
-  const handleEdit = (index) => {
+function FormDataList({ formDataList, onEdit, onDelete }) {
+  const handleEdit = (id) => {
     if (typeof onEdit === "function") {
-      onEdit(index);
+      onEdit(id);
     }
   };
 
-  const handleDelete = (index) => {
-    // Deleting the record at the given index
-    const updatedFormDataList = [...formDataList];
-    updatedFormDataList.splice(index, 1);
-    localStorage.setItem("formData", JSON.stringify(updatedFormDataList));
-    // Reload the page to reflect the changes
-    window.location.reload();
-    alert("Record deleted");
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`/api/formData/${id}`);
+      onDelete(id);
+      alert("Record deleted");
+    } catch (error) {
+      console.error("Error deleting record:", error);
+    }
   };
 
   if (!Array.isArray(formDataList)) {
@@ -45,7 +45,7 @@ function FormDataList({ formDataList, onEdit }) {
         </thead>
         <tbody>
           {formDataList.map((formData, index) => (
-            <tr key={index}>
+            <tr key={formData._id}>
               <td>{formData ? formData.firstName : ""}</td>
               <td>{formData ? formData.lastName : ""}</td>
               <td>{formData ? formData.email : ""}</td>
@@ -53,8 +53,10 @@ function FormDataList({ formDataList, onEdit }) {
               <td>{formData ? formData.alternatePhoneNumber : ""}</td>
               <td>{formData ? formData.address : ""}</td>
               <td>
-                <button onClick={() => handleEdit(index)}>Edit</button>
-                <button onClick={() => handleDelete(index)}>Delete</button>
+                <button onClick={() => handleEdit(formData._id)}>Edit</button>
+                <button onClick={() => handleDelete(formData._id)}>
+                  Delete
+                </button>
               </td>
             </tr>
           ))}

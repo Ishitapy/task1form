@@ -1,11 +1,14 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import axios from "./axiosConfig";
 import "./Form.css";
 
 function Form() {
   const navigate = useNavigate();
-  const { index } = useParams();
+  const { id } = useParams();
+  console.log("ID parameter:", id);
+
   const {
     register,
     handleSubmit,
@@ -17,33 +20,30 @@ function Form() {
   password.current = watch("password", "");
 
   useEffect(() => {
-    if (index !== undefined) {
-      const formDataList = JSON.parse(localStorage.getItem("formData")) || [];
-      if (formDataList[index]) {
-        const formData = formDataList[index];
-        Object.entries(formData).forEach(([key, value]) => {
-          setValue(key, value); // Populate form field with value
-        });
-      } else {
-        // Handle invalid index or record not found
-        navigate("/");
-      }
+    // Fetch existing form data (if editing)
+    if (id !== undefined) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(`/api/formData/${id}`);
+          // Populating form fields with existing data
+          const formData = response.data;
+          console.log("Fetched Data:", response.data);
+
+          Object.entries(formData).forEach(([key, value]) => {
+            setValue(key, value); // Populate form field with value
+          });
+        } catch (error) {
+          console.error("Error fetching form data:", error);
+        }
+      };
+
+      fetchData();
     }
-  }, [index, setValue, navigate]);
+  }, [id, setValue]);
 
   const onSubmit = (data) => {
-    if (index !== undefined) {
-      navigate("/summary", {
-        state: { formData: { ...data, index }, isAuthenticated: true },
-      });
-      alert("Here is summary of your data");
-    } else {
-      // Remove saving of new form data here
-      navigate("/summary", {
-        state: { formData: data, isAuthenticated: true },
-      });
-      alert("Here is summary of your data");
-    }
+    console.log("Form submitted:", data);
+    navigate("/summary", { state: { formData: data, isAuthenticated: true } });
   };
 
   return (
@@ -115,7 +115,7 @@ function Form() {
             <span className="error">{errors.phoneNumber.message}</span>
           )}
         </div>
-        {!index && (
+        {!id && (
           <div>
             <label>Password*</label>
             <input
@@ -140,7 +140,7 @@ function Form() {
             )}
           </div>
         )}
-        {!index && (
+        {!id && (
           <div>
             <label>Re-enter Password*</label>
             <input

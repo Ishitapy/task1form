@@ -13,7 +13,7 @@ export default function App() {
           <Route path="/form" element={<Form />} />
           <Route path="/" element={<Home />} />
           <Route path="/summary" element={<Summary />} />
-          <Route path="/Form/edit/:index" element={<Form />} />
+          <Route path="/Form/edit/:id" element={<Form />} />
         </Routes>
       </Router>
     </>

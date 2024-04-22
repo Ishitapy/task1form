@@ -1,45 +1,54 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from "./axiosConfig";
 
 function Summary() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = location.state?.isAuthenticated;
   const formData = location.state?.formData;
+  const [submitted, setSubmitted] = useState(false);
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/", { replace: true }); // Redirect to home page
-      alert("You do not have access to the summary page.");
+    // Redirect to home page if not authenticated or no form data
+    if (!isAuthenticated || !formData) {
+      navigate("/");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, formData, navigate]);
 
-  const handleSubmit = () => {
-    console.log("Form data:", formData);
+  const handleSubmit = async () => {
+    try {
+      console.log("Form data:", formData);
 
-    if (formData) {
-      let existingFormData = JSON.parse(localStorage.getItem("formData")) || [];
-
-      if (formData.index !== undefined && existingFormData[formData.index]) {
-        // Update existing record
-        existingFormData[formData.index] = formData;
+      if (formData && !submitted) {
+        if (formData._id) {
+          // If id exists, it means we're updating existing data
+          const response = await axios.put(
+            `http://localhost:5000/api/formData/${formData._id}`,
+            formData
+          );
+          setSubmitted(true);
+          alert("Your form is updated");
+          navigate("/", { state: { updatedData: response.data } });
+        } else {
+          const response = await axios.post(
+            "http://localhost:5000/api/formData",
+            formData
+          );
+          setSubmitted(true);
+          alert("Your form is submitted");
+          navigate("/", { state: { updatedData: response.data } });
+        }
       } else {
-        // Add new record
-        existingFormData.push(formData);
+        console.error("Form data is missing.");
       }
-
-      localStorage.setItem("formData", JSON.stringify(existingFormData));
-
-      alert("Your form is submitted");
-      navigate("/", { state: { updatedData: formData } });
-    } else {
-      console.error("Form data is missing in location state.");
+    } catch (error) {
+      console.error("Error submitting form data:", error);
     }
   };
 
   const goBackToFormPage = () => {
     navigate("/form");
   };
-
   if (!isAuthenticated) {
     return null; // Avoid rendering the rest of the component if not authenticated
   }
